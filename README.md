@@ -49,13 +49,13 @@ you can see [https://www.cnblogs.com/dathlin/p/12142663.html](https://www.cnblog
 企业商用说明：仅限于公司开发的软件，该软件的署名必须为授权公司，不得改成他人或是公司（除非他人或公司已经取得商用授权），该软件不能被转卖。授权不限制项目，一次授权，终生使用。
 
 关于授权的步骤：
-	1. 签合同，双方在合同上签字
-	2. 付款，支持支付宝，微信，银行卡
-	3. 开发票，增值税普票（个人找税务局代开的）
-	4. 加入 Hsl超级VIP群 即获得源代码和超级激活码，永久支持更新。
-	5. 注册官网的git账户
-	6. 专业培训额外付费，1000元人民币1小时，培训控件使用，控件开发。
-	7. 联系方式：Email:hsl200909@163.com   QQ:200962190   Wechat:13516702732
+1. 签合同，双方在合同上签字
+2. 付款，支持支付宝，微信，银行卡
+3. 开发票，增值税普票（个人找税务局代开的）
+4. 加入 Hsl超级VIP群 即获得源代码和超级激活码，永久支持更新。
+5. 注册官网的git账户
+6. 专业培训额外付费，1000元人民币1小时，培训控件使用，控件开发。
+7. 联系方式：Email:hsl200909@163.com   QQ:200962190   Wechat:13516702732
 
 官网：http://www.hslcommunication.cn  如果不能访问，请访问：http://118.24.36.220
 
@@ -68,12 +68,15 @@ It must not be changed to another person or company (unless someone else or the 
 Authorization does not limit the project, once authorized, lifetime use.
 
 Steps on authorization:
-	1. Sign the contract, both parties sign the contract
-	2. Payment, support Alipay, WeChat, bank card
-	3. Invoice, general VAT ticket (issued on behalf of the individual, registered companies will be different later)
-	4. Join the Hsl Super VIP Group to get the source code and super activation code, and always support updates.
-	5. Register git account on official website
-	6. Professional training costs an additional fee of 1,000 yuan per hour, training controls use, control development.
-	7. Contact: Email: hsl200909@163.com QQ: 200962190 Weichat: 13516702732
+1. Sign the contract, both parties sign the contract
+2. Payment, support Alipay, WeChat, bank card
+3. Invoice, general VAT ticket (issued on behalf of the individual, registered companies will be different later)
+4. Join the Hsl Super VIP Group to get the source code and super activation code, and always support updates.
+5. Register git account on official website
+6. Professional training costs an additional fee of 1,000 yuan per hour, training controls use, control development.
+7. Contact: Email: hsl200909@163.com QQ: 200962190 Weichat: 13516702732
 	
 Website：http://www.hslcommunication.cn  If you cannot access, please visit: http://118.24.36.220
+
+## Demo
+![Picture](https://raw.githubusercontent.com/dathlin/HslCommunication/master/imgs/python_demo.png)
