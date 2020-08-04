@@ -1,5 +1,5 @@
 # HslCommunication.py
-![Build status](https://img.shields.io/badge/Build-Success-green.svg) ![NetFramework](https://img.shields.io/badge/python-3.6-orange.svg) ![IDE status](https://img.shields.io/badge/Visual%20Studio-Code-red.svg) ![copyright status](https://img.shields.io/badge/CopyRight-Richard.Hu-brightgreen.svg) 
+![Build status](https://img.shields.io/badge/Build-Success-green.svg) ![NetFramework](https://img.shields.io/badge/python-3.6-orange.svg) ![IDE status](https://img.shields.io/badge/Visual%20Studio-Code-red.svg) ![version](https://img.shields.io/pypi/v/HslCommunication) ![download](https://img.shields.io/pypi/dm/HslCommunication) ![copyright status](https://img.shields.io/badge/CopyRight-Richard.Hu-brightgreen.svg)
 
 ## CopyRight
 (C) 2017 - 2020 Richard.Hu, All Rights Reserved
