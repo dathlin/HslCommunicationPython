@@ -1,7 +1,7 @@
 '''
 MIT License
 
-Copyright (c) 2017-2020 Richard.Hu
+Copyright (c) 2017-2022 Richard.Hu
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,9 @@ Warning: The following code can only be run in the Test plc, prohibit the use of
 import datetime
 import sys
 import threading
+from time import sleep
 import HslCommunication
-from HslCommunication import SoftBasic, MelsecMcNet, MelsecMcAsciiNet, MelsecA1ENet, SiemensS7Net, SiemensPLCS, SiemensFetchWriteNet, OmronFinsNet, ModbusTcpNet, OperateResult, NetSimplifyClient
+from HslCommunication import AllenBradleyNet, ModbusRtuOverTcp, NetworkDeviceBase, SoftBasic, MelsecMcNet, MelsecMcAsciiNet, MelsecA1ENet, SiemensS7Net, SiemensPLCS, SiemensFetchWriteNet, OmronFinsNet, ModbusTcpNet, OperateResult, NetSimplifyClient
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QApplication, QMessageBox, QAction, QPushButton, QVBoxLayout, QLineEdit, QTextEdit
@@ -85,7 +86,7 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.englishAction.triggered.connect( self.EnglishClick )
 		self.menuBar.addAction(self.englishAction)
 
-		self.bbsAction = QAction( '论坛', self )
+		self.bbsAction = QAction( '官网', self )
 		self.bbsAction.triggered.connect( self.BbsClick )
 		self.menuBar.addAction(self.bbsAction)
 
@@ -93,7 +94,7 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.changeLogAction.triggered.connect( self.changeLogClick )
 		self.menuBar.addAction(self.changeLogAction)
 
-		self.versionAction = QAction( 'Version: 1.0.0', self )
+		self.versionAction = QAction( 'Version: 1.2.0', self )
 		self.menuBar.addAction(self.versionAction)
 
 		# 三菱的PLC的数据通信
@@ -150,7 +151,7 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.pushButton105.setGeometry(QtCore.QRect(18, 184, 150, 32))
 		self.pushButton105.setText("s7-200")
 		self.pushButton105.setObjectName("pushButton105")
-		self.pushButton105.setEnabled(False)
+		self.pushButton105.clicked.connect(self.pushButton105_click)
 
 		self.pushButton106 = QtWidgets.QPushButton(self.siemensGroupBox)
 		self.pushButton106.setGeometry(QtCore.QRect(18, 224, 150, 32))
@@ -173,6 +174,13 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.pushButton201.setText("Modbus Tcp")
 		self.pushButton201.setObjectName("pushButton201")
 		self.pushButton201.clicked.connect(self.pushButton201_click)
+  
+		self.pushButton202 = QtWidgets.QPushButton(self.modbusGroupBox)
+		self.pushButton202.setGeometry(QtCore.QRect(15, 64, 150, 32))
+		self.pushButton202.setText("Modbus Rtu OverTcp")
+		self.pushButton202.setObjectName("pushButton202")
+		self.pushButton202.clicked.connect(self.pushButton202_click)
+
 
 		# Omron
 		self.omronGroupBox = QtWidgets.QGroupBox(self)
@@ -208,6 +216,12 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.abGroupBox = QtWidgets.QGroupBox(self)
 		self.abGroupBox.setTitle("AB PLC(罗克韦尔)")
 		self.abGroupBox.setGeometry(QtCore.QRect(968, 133, 185, 121))
+  
+		self.pushButton901 = QtWidgets.QPushButton(self.abGroupBox)
+		self.pushButton901.setGeometry(QtCore.QRect(15, 24, 150, 32))
+		self.pushButton901.setText("CIP")
+		self.pushButton901.clicked.connect(self.pushButton901_click)
+		self.pushButton901.setObjectName("pushButton901")
 
 		# Fuji
 		self.fujiGroupBox = QtWidgets.QGroupBox(self)
@@ -233,8 +247,12 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		if connect.IsSuccess == False:
 			print(connect.Message)
 		else:
-			netSimplifyClient.ReadFromServer(600,'1.0.0')
+			netSimplifyClient.ReadFromServer(600,'1.2.0')
 			netSimplifyClient.ConnectClose()
+		# 更新界面的相关信息
+		while True:
+			sleep(1)
+			print('HslTimeOut:' + str(len(HslCommunication.HslTimeOut.WaitHandleTimeOut)))
 
 	#控制窗口显示在屏幕中心的方法
 	def center(self):
@@ -255,16 +273,16 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		HslCommunication.StringResources.Language = HslCommunication.DefaultLanguage()
 		QMessageBox.information(self,'Info','当前已经选择中文')
 		WindowsLoad.Language = 1
-		self.bbsAction.setText('论坛')
+		self.bbsAction.setText('官网')
 		self.changeLogAction.setText('更新日志')
 	def EnglishClick( self ):
 		HslCommunication.StringResources.Language = HslCommunication.English()
 		QMessageBox.information(self,'Info','English Selected !')
 		WindowsLoad.Language = 2
-		self.bbsAction.setText('Bbs')
+		self.bbsAction.setText('Home')
 		self.changeLogAction.setText('Change Log')
 	def BbsClick( self ):
-		QtGui.QDesktopServices.openUrl(QtCore.QUrl('http://118.24.36.220/'))
+		QtGui.QDesktopServices.openUrl(QtCore.QUrl('http://www.hsltechnology.cn'))
 	def changeLogClick( self ):
 		QtGui.QDesktopServices.openUrl(QtCore.QUrl('http://118.24.36.220:8080/'))
 	def AboutClick( self ):
@@ -291,7 +309,7 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.formSiemens = FormSiemens(SiemensPLCS.S300)
 		self.formSiemens.show()
 	def pushButton105_click(self):
-		self.formSiemens = FormSiemens(SiemensPLCS.S1200)
+		self.formSiemens = FormSiemens(SiemensPLCS.S200)
 		self.formSiemens.show()
 	def pushButton106_click(self):
 		self.formSiemens = FormSiemens(SiemensPLCS.S200Smart)
@@ -304,9 +322,16 @@ class WindowsLoad(QtWidgets.QMainWindow):
 		self.modbus = FormModbus()
 		self.modbus.show()
 
+	def pushButton202_click(self):
+		self.modbusRtuOverTcp = FormModbusRtuOverTcp()
+		self.modbusRtuOverTcp.show()
+
 	def pushButton301_click(self):
 		self.omron = FormOmron()
 		self.omron.show()
+	def pushButton901_click(self):
+		self.formAllenBrandly = FormAllenBrandly()
+		self.formAllenBrandly.show()
 
 	def show(self):
 		super().show()
@@ -383,80 +408,82 @@ class UserControlReadWriteOp(QWidget):
 		# 读取的控件信息
 		self.readGroupBox = QtWidgets.QGroupBox(self)
 		self.readGroupBox.setTitle('Read Data Single')
-		self.readGroupBox.setGeometry(0, 0, 518, 234)
+		self.readGroupBox.setGeometry(0, 0, 529, 234)
 		self.label1 = QtWidgets.QLabel('Address:', self.readGroupBox)
-		self.label1.move(9, 30)
+		self.label1.move(9, 26)
 		self.textbox3 = QtWidgets.QLineEdit('', self.readGroupBox)
-		self.textbox3.setGeometry(63, 27, 185, 24)
+		self.textbox3.setGeometry(63, 23, 206, 23)
 		self.textbox5 = QtWidgets.QLineEdit('', self.readGroupBox)
-		self.textbox5.setGeometry(254, 27, 42, 24)
+		self.textbox5.setGeometry(275, 23, 64, 23)
 		self.textbox5.setText('1')
 		self.label7 = QtWidgets.QLabel("Result:", self.readGroupBox)
-		self.label7.move(9, 58)
+		self.label7.move(9, 54)
 		self.textbox4 = QtWidgets.QTextEdit("", self.readGroupBox)
-		self.textbox4.setGeometry(63, 56, 233, 164)
+		self.textbox4.setGeometry(63, 50, 276, 176)
 
 		self.button_read_bool = QtWidgets.QPushButton('r-bool', self.readGroupBox)
-		self.button_read_bool.setGeometry(315, 19, 82, 28)
+		self.button_read_bool.setGeometry(345, 20, 84, 28)
 		self.button_read_byte = QtWidgets.QPushButton('r-byte', self.readGroupBox)
-		self.button_read_byte.setGeometry(415, 19, 82, 28)
+		self.button_read_byte.setGeometry(436, 20, 84, 28)
 		self.button_read_short = QtWidgets.QPushButton('r-short', self.readGroupBox)
-		self.button_read_short.setGeometry(315, 56, 82, 28)
+		self.button_read_short.setGeometry(345, 51, 84, 28)
 		self.button_read_ushort = QtWidgets.QPushButton('r-ushort', self.readGroupBox)
-		self.button_read_ushort.setGeometry(415, 56, 82, 28)
+		self.button_read_ushort.setGeometry(436, 51, 84, 28)
 		self.button_read_int = QtWidgets.QPushButton('r-int', self.readGroupBox)
-		self.button_read_int.setGeometry(315, 90, 82, 28)
+		self.button_read_int.setGeometry(345, 82, 84, 28)
 		self.button_read_uint = QtWidgets.QPushButton('r-uint', self.readGroupBox)
-		self.button_read_uint.setGeometry(415, 90, 82, 28)
+		self.button_read_uint.setGeometry(436, 82, 84, 28)
 		self.button_read_long = QtWidgets.QPushButton('r-long', self.readGroupBox)
-		self.button_read_long.setGeometry(315, 124, 82, 28)
+		self.button_read_long.setGeometry(345, 113, 84, 28)
 		self.button_read_ulong = QtWidgets.QPushButton('r-ulong', self.readGroupBox)
-		self.button_read_ulong.setGeometry(415, 124, 82, 28)
+		self.button_read_ulong.setGeometry(436, 113, 84, 28)
 		self.button_read_float = QtWidgets.QPushButton('r-float', self.readGroupBox)
-		self.button_read_float.setGeometry(315, 158, 82, 28)
+		self.button_read_float.setGeometry(345, 144, 84, 28)
 		self.button_read_double = QtWidgets.QPushButton('r-double', self.readGroupBox)
-		self.button_read_double.setGeometry(415, 158, 82, 28)
+		self.button_read_double.setGeometry(436, 144, 84, 28)
 		self.label8 = QtWidgets.QLabel("Length:", self.readGroupBox)
-		self.label8.move(312, 198)
+		self.label8.move(342, 180)
 		self.textbox1 = QtWidgets.QLineEdit("", self.readGroupBox)
-		self.textbox1.setGeometry(365, 195, 41, 24)
+		self.textbox1.setGeometry(386, 177, 41, 23)
 		self.button_read_string = QtWidgets.QPushButton('r-string', self.readGroupBox)
-		self.button_read_string.setGeometry(415, 195, 82, 28)
+		self.button_read_string.setGeometry(436, 174, 84, 28)
 		# 写入的控件信息
 		self.writeGroupBox = QtWidgets.QGroupBox(self)
 		self.writeGroupBox.setTitle('Write Data Single')
 		self.writeGroupBox.setGeometry(535, 0, 419, 234)
 		self.label10 = QtWidgets.QLabel('Address:', self.writeGroupBox)
-		self.label10.move(9, 30)
+		self.label10.move(9, 24)
 		self.textbox8 = QtWidgets.QLineEdit('', self.writeGroupBox)
-		self.textbox8.setGeometry(63, 27, 132, 24)
-		self.label9 = QtWidgets.QLabel('Address:', self.writeGroupBox)
-		self.label9.move(9, 30)
+		self.textbox8.setGeometry(63, 21, 166, 23)
+		self.label9 = QtWidgets.QLabel('Value:', self.writeGroupBox)
+		self.label9.move(9, 52)
 		self.textbox7 = QtWidgets.QLineEdit('', self.writeGroupBox)
-		self.textbox7.setGeometry(63, 56, 132, 24)
+		self.textbox7.setGeometry(63, 50, 166, 23)
 		self.textbox7.setText('False')
 		self.button_write_bool = QtWidgets.QPushButton('w-bool', self.writeGroupBox)
-		self.button_write_bool.setGeometry(226, 19, 82, 28)
+		self.button_write_bool.setGeometry(238, 18, 84, 28)
 		self.button_write_byte = QtWidgets.QPushButton('w-byte', self.writeGroupBox)
-		self.button_write_byte.setGeometry(326, 19, 82, 28)
+		self.button_write_byte.setGeometry(329, 19, 84, 28)
 		self.button_write_short = QtWidgets.QPushButton('w-short', self.writeGroupBox)
-		self.button_write_short.setGeometry(226, 56, 82, 28)
+		self.button_write_short.setGeometry(238, 49, 84, 28)
 		self.button_write_ushort = QtWidgets.QPushButton('w-ushort', self.writeGroupBox)
-		self.button_write_ushort.setGeometry(326, 56, 82, 28)
+		self.button_write_ushort.setGeometry(329, 49, 84, 28)
 		self.button_write_int = QtWidgets.QPushButton('w-int', self.writeGroupBox)
-		self.button_write_int.setGeometry(226, 90, 82, 28)
+		self.button_write_int.setGeometry(238, 80, 84, 28)
 		self.button_write_uint = QtWidgets.QPushButton('w-uint', self.writeGroupBox)
-		self.button_write_uint.setGeometry(326, 90, 82, 28)
+		self.button_write_uint.setGeometry(329, 80, 84, 28)
 		self.button_write_long = QtWidgets.QPushButton('w-long', self.writeGroupBox)
-		self.button_write_long.setGeometry(226, 124, 82, 28)
+		self.button_write_long.setGeometry(238, 111, 84, 28)
 		self.button_write_ulong = QtWidgets.QPushButton('w-ulong', self.writeGroupBox)
-		self.button_write_ulong.setGeometry(326, 124, 82, 28)
+		self.button_write_ulong.setGeometry(329, 111, 84, 28)
 		self.button_write_float = QtWidgets.QPushButton('w-float', self.writeGroupBox)
-		self.button_write_float.setGeometry(226, 158, 82, 28)
+		self.button_write_float.setGeometry(238, 142, 84, 28)
 		self.button_write_double = QtWidgets.QPushButton('w-double', self.writeGroupBox)
-		self.button_write_double.setGeometry(326, 158, 82, 28)
+		self.button_write_double.setGeometry(329, 142, 84, 28)
+		self.button_write_hex = QtWidgets.QPushButton('w-hex', self.writeGroupBox)
+		self.button_write_hex.setGeometry(238, 173, 84, 28)
 		self.button_write_string = QtWidgets.QPushButton('w-string', self.writeGroupBox)
-		self.button_write_string.setGeometry(326, 195, 82, 28)
+		self.button_write_string.setGeometry(329, 173, 84, 28)
 		self.label19 = QtWidgets.QLabel('Note: The value of the string needs to be converted', self.writeGroupBox)
 		self.label19.setGeometry(61, 82, 147, 58)
 		self.label19.setWordWrap(True)
@@ -484,6 +511,7 @@ class UserControlReadWriteOp(QWidget):
 		self.button_write_ulong.clicked.connect(self.button_write_ulong_click)
 		self.button_write_float.clicked.connect(self.button_write_float_click)
 		self.button_write_double.clicked.connect(self.button_write_double_click)
+		self.button_write_hex.clicked.connect(self.button_write_hex_click)
 		self.button_write_string.clicked.connect(self.button_write_string_click)
 
 	def button_read_bool_click(self):
@@ -537,10 +565,21 @@ class UserControlReadWriteOp(QWidget):
 		DemoUtils.ReadResultRender(self.readWriteNet.ReadString(self.textbox3.text(),  int(self.textbox1.text())), self.textbox3.text(), self.textbox4)
 	# 写入部分的内容
 	def button_write_bool_click(self):
-		if self.textbox7.text().lower() == "true":
-			DemoUtils.WriteResultRender(self.readWriteNet.WriteBool(self.textbox8.text(), True), self.textbox8.text())
+		text = self.textbox7.text().lower()
+		if text.startswith("[") and text.endswith("]"):
+			text = text[1:len(text) - 1]
+			boolValues = []
+			for strValue in text.split(","):
+				if strValue.lower() == "true":
+					boolValues.append(True)
+				else:
+					boolValues.append(False)
+			DemoUtils.WriteResultRender(self.readWriteNet.WriteBool(self.textbox8.text(), boolValues), self.textbox8.text())
 		else:
-			DemoUtils.WriteResultRender(self.readWriteNet.WriteBool(self.textbox8.text(), False), self.textbox8.text())
+			if self.textbox7.text().lower() == "true":
+				DemoUtils.WriteResultRender(self.readWriteNet.WriteBool(self.textbox8.text(), True), self.textbox8.text())
+			else:
+				DemoUtils.WriteResultRender(self.readWriteNet.WriteBool(self.textbox8.text(), False), self.textbox8.text())
 	def button_write_byte_click(self):
 		try:
 			DemoUtils.WriteResultRender(self.readWriteNet.WriteByte(self.textbox8.text(), int(self.textbox7.text())), self.textbox8.text())
@@ -588,8 +627,10 @@ class UserControlReadWriteOp(QWidget):
 			QMessageBox.information(None,'Info',datetime.datetime.now().strftime('%H:%M:%S')  + self.textbox8.text() + " Write Failed: " + str(ex))
 	def button_write_string_click(self):
 		DemoUtils.WriteResultRender(self.readWriteNet.WriteString(self.textbox8.text(), self.textbox7.text()), self.textbox8.text())
+	def button_write_hex_click(self):
+		DemoUtils.WriteResultRender(self.readWriteNet.Write(self.textbox8.text(), SoftBasic.HexStringToBytes(self.textbox7.text())), self.textbox8.text())
 
-	def SetReadWriteNet( self, readWrite, address, strLength = 10 ):
+	def SetReadWriteNet( self, readWrite : NetworkDeviceBase, address : str, strLength = 10 ):
 		self.address = address
 		self.textbox3.setText(self.address)
 		self.textbox8.setText(self.address)
@@ -720,6 +761,7 @@ class FormMelsecBinary(QtWidgets.QMainWindow):
 				  (screen.height() - size.height()) / 2)
 	def button_connect_click(self):
 		self.melsec = MelsecMcNet(self.textboxIp.text(), int(self.textboxPort.text()))
+		self.melsec.receiveTimeOut = 5000
 		connect = self.melsec.ConnectServer()
 		if connect.IsSuccess == False:
 			QMessageBox.information(self,'Info','Connect Failed: ' + connect.ToMessageShowString())
@@ -802,7 +844,7 @@ class FormSiemens(QtWidgets.QMainWindow):
 		self.setWindowTitle('西门子PLC访问Demo')                                # 设置窗体的标题
 		self.userControlHead = UserControlHead(self)
 		self.userControlHead.setGeometry(QtCore.QRect(0, 0, 1004, 32))
-		self.userControlHead.setProtocol('S7')
+		self.userControlHead.setProtocol(str(self.siemensPLCS))
 		
 		self.siemens = None
 		self.Address = 'M100'
@@ -822,13 +864,26 @@ class FormSiemens(QtWidgets.QMainWindow):
 		self.textboxPort = QtWidgets.QLineEdit("", self.settings)
 		self.textboxPort.setGeometry(220, 8, 50, 24)
 		self.textboxPort.setText('102')
-		self.label23= QtWidgets.QLabel('Rack:', self.settings)
+		if self.siemensPLCS != SiemensPLCS.S200:
+			self.label23= QtWidgets.QLabel('Rack:', self.settings)
+		else:
+			self.label23= QtWidgets.QLabel('Local:', self.settings)
 		self.label23.move(305, 10)
-		self.textbox15 = QtWidgets.QLineEdit('0', self.settings)
+		if self.siemensPLCS != SiemensPLCS.S200:
+			self.textbox15 = QtWidgets.QLineEdit( '0', self.settings)
+		else:
+			self.textbox15 = QtWidgets.QLineEdit( '4D57', self.settings)
 		self.textbox15.setGeometry(354, 7, 33, 23)
-		self.label23= QtWidgets.QLabel('Slot:', self.settings)
+		
+		if self.siemensPLCS != SiemensPLCS.S200:
+			self.label23= QtWidgets.QLabel('Slot:', self.settings)
+		else:
+			self.label23= QtWidgets.QLabel('Dest:', self.settings)
 		self.label23.move(393, 10)
-		self.textbox16 = QtWidgets.QLineEdit('0', self.settings)
+		if self.siemensPLCS != SiemensPLCS.S200:
+			self.textbox16 = QtWidgets.QLineEdit('0', self.settings)
+		else:
+			self.textbox16 = QtWidgets.QLineEdit('4D57', self.settings)
 		self.textbox16.setGeometry(439, 7, 33, 23)
 		self.label25= QtWidgets.QLabel('Not use for s7-200 smart', self.settings)
 		self.label25.move(317, 33)
@@ -903,7 +958,10 @@ class FormSiemens(QtWidgets.QMainWindow):
 	def button_connect_click(self):
 		self.siemens = SiemensS7Net(self.siemensPLCS,self.textboxIp.text())
 		self.siemens.port = int(self.textboxPort.text())
-		self.siemens.SetSlotAndRack(int(self.textbox15.text()), int(self.textbox16.text()))
+		if self.siemensPLCS != SiemensPLCS.S200:
+			self.siemens.SetSlotAndRack(int(self.textbox15.text()), int(self.textbox16.text()))
+		else:
+			self.siemens.SetTsap( int(self.textbox15.text(), 16), int(self.textbox16.text(), 16) )
 		connect = self.siemens.ConnectServer()
 		if connect.IsSuccess == False:
 			QMessageBox.information(self,'Info','Connect Failed: ' + connect.ToMessageShowString())
@@ -1081,7 +1139,7 @@ class FormOmron(QtWidgets.QMainWindow):
 		self.Address = 'D100'
 
 		self.settings = QtWidgets.QWidget(self)
-		self.settings.setGeometry(QtCore.QRect(14, 44, 978, 54))
+		self.settings.setGeometry(QtCore.QRect(14, 34, 978, 64))
 		self.settings.setObjectName('settings')
 		self.settings.setStyleSheet('QWidget#settings{border:1px solid gray;}')
 		self.setStyleSheet('FormOmron{background:#F0F8FF;font:微软雅黑;}')
@@ -1096,25 +1154,33 @@ class FormOmron(QtWidgets.QMainWindow):
 		self.label2.move(182, 17)
 		self.textboxPort = QtWidgets.QLineEdit("", self.settings)
 		self.textboxPort.setGeometry(236, 14, 69, 23)
-		self.textboxPort.setText('2000')
+		self.textboxPort.setText('9600')
 
 		self.label24 = QtWidgets.QLabel('PLC单元号：', self.settings)
-		self.label24.move(311, 5)
+		self.label24.move(311, 8)
 		self.textbox16 = QtWidgets.QLineEdit("", self.settings)
-		self.textbox16.setGeometry(387, 2, 56, 23)
+		self.textbox16.setGeometry(387, 5, 56, 23)
 		self.textbox16.setText('0')
-
-		self.label23 = QtWidgets.QLabel('本机网络号：', self.settings)
-		self.label23.move(449, 5)
+  
+		self.label25 = QtWidgets.QLabel('SA1', self.settings)
+		self.label25.move(311, 35)
 		self.textbox15 = QtWidgets.QLineEdit("", self.settings)
-		self.textbox15.setGeometry(525, 2, 56, 23)
-		self.textbox15.setText('192')
+		self.textbox15.setGeometry(385, 32, 45, 23)
+		self.textbox15.setText('')
+		self.textbox15.setReadOnly(True)
+
+		self.label26 = QtWidgets.QLabel('DA1', self.settings)
+		self.label26.move(434, 35)
+		self.textbox17 = QtWidgets.QLineEdit("", self.settings)
+		self.textbox17.setGeometry(481, 32, 45, 23)
+		self.textbox17.setText('')
+		self.textbox17.setReadOnly(True)
 
 		self.buttonConnect = QtWidgets.QPushButton('Connect', self.settings)
-		self.buttonConnect.setGeometry(690, 11, 64, 28)
+		self.buttonConnect.setGeometry(690, 11, 100, 28)
 		self.buttonConnect.clicked.connect(self.button_connect_click)
 		self.buttonDisConnect = QtWidgets.QPushButton('DisConnect', self.settings)
-		self.buttonDisConnect.setGeometry(761, 11, 64, 28)
+		self.buttonDisConnect.setGeometry(831, 11, 100, 28)
 		self.buttonDisConnect.clicked.connect(self.button_disconnect_click)
 		self.buttonDisConnect.setEnabled(False)
 		# panel2
@@ -1177,7 +1243,6 @@ class FormOmron(QtWidgets.QMainWindow):
 				  (screen.height() - size.height()) / 2)
 	def button_connect_click(self):
 		self.omron = OmronFinsNet(self.textboxIp.text(), int(self.textboxPort.text()))
-		self.omron.SA1 = int(self.textbox15.text())
 		self.omron.DA2 = int(self.textbox16.text())
 		connect = self.omron.ConnectServer()
 		if connect.IsSuccess == False:
@@ -1186,6 +1251,8 @@ class FormOmron(QtWidgets.QMainWindow):
 			QMessageBox.information(self,'Info','Connect Success!')
 			self.buttonConnect.setEnabled(False)
 			self.buttonDisConnect.setEnabled(True)
+			self.textbox15.setText(str(self.omron.SA1))
+			self.textbox17.setText(str(self.omron.DA1))
 			self.panel2.setEnabled(True)
 			self.userControlReadWriteOp1.SetReadWriteNet(self.omron, self.Address)
 	def button_disconnect_click(self):
@@ -1324,7 +1391,7 @@ class FormModbus(QtWidgets.QMainWindow):
 		self.move((screen.width() - size.width()) / 2,
 				  (screen.height() - size.height()) / 2)
 	def button_connect_click(self):
-		self.modbus = ModbusTcpNet(self.textboxIp.text(), int(self.textboxPort.text()))
+		self.modbus = ModbusTcpNet(self.textboxIp.text(), int(self.textboxPort.text()), int(self.textbox16.text()))
 		self.modbus.isAddressStartWithZero = self.checkBox1.isChecked()
 		if self.comboBox1.currentText() == 'ABCD':
 			self.modbus.byteTransform.DataFormat = HslCommunication.DataFormat.ABCD
@@ -1363,6 +1430,299 @@ class FormModbus(QtWidgets.QMainWindow):
 			self.textbox11.setText(datetime.datetime.now().strftime('%H:%M:%S') + " "+ SoftBasic.ByteToHexString(read.Content))
 		else:
 			QMessageBox.information(self,'Info','Read Failed: ' + read.ToMessageShowString())
+
+class FormModbusRtuOverTcp(QtWidgets.QMainWindow):
+	def __init__(self):
+		super().__init__()
+		self.initUI()
+	def initUI(self):
+		self.setGeometry(100, 100, WindowsLoad.WindowWidth, WindowsLoad.WindowHeight)                                 # 设置窗体的位置和大小情况
+		self.setWindowTitle('Modbus访问Demo')                                # 设置窗体的标题
+		self.userControlHead = UserControlHead(self)
+		self.userControlHead.setGeometry(QtCore.QRect(0, 0, 1004, 32))
+		self.userControlHead.setProtocol('Modbus-Tcp')
+		
+		self.modbus = None
+		self.Address = '100'
+
+		self.settings = QtWidgets.QWidget(self)
+		self.settings.setGeometry(QtCore.QRect(14, 44, 978, 62))
+		self.settings.setObjectName('settings')
+		self.settings.setStyleSheet('QWidget#settings{border:1px solid gray;}')
+		self.setStyleSheet('FormModbus{background:#F0F8FF;font:微软雅黑;}')
+
+		self.label1 = QtWidgets.QLabel('Ip：', self.settings)
+		self.label1.move(8, 10)
+		self.textboxIp = QtWidgets.QLineEdit('', self.settings)
+		self.textboxIp.setGeometry(62, 7, 128, 23)
+		self.textboxIp.setText('127.0.0.1')
+
+		self.label2 = QtWidgets.QLabel('Port：', self.settings)
+		self.label2.move(196, 10)
+		self.textboxPort = QtWidgets.QLineEdit('', self.settings)
+		self.textboxPort.setGeometry(250, 7, 76, 23)
+		self.textboxPort.setText('502')
+
+		self.label21 = QtWidgets.QLabel('Station：', self.settings)
+		self.label21.move(338, 10)
+		self.textbox16 = QtWidgets.QLineEdit('', self.settings)
+		self.textbox16.setGeometry(392, 7, 39, 23)
+		self.textbox16.setText('1')
+
+		self.checkBox1 = QtWidgets.QCheckBox(self.settings)
+		self.checkBox1.setText('首地址从0开始')
+		self.checkBox1.move(447, 9)
+		self.checkBox1.setChecked(True)
+
+		self.comboBox1 = QtWidgets.QComboBox(self.settings)
+		self.comboBox1.addItems(['ABCD','BADC','CDAB','DCBA'])
+		self.comboBox1.setCurrentIndex(0)
+		self.comboBox1.setGeometry(558, 6, 111, 25)
+
+		self.buttonConnect = QtWidgets.QPushButton('Connect', self.settings)
+		self.buttonConnect.setGeometry(690, 11, 64, 28)
+		self.buttonConnect.clicked.connect(self.button_connect_click)
+		self.buttonDisConnect = QtWidgets.QPushButton('DisConnect', self.settings)
+		self.buttonDisConnect.setGeometry(761, 11, 64, 28)
+		self.buttonDisConnect.clicked.connect(self.button_disconnect_click)
+		self.buttonDisConnect.setEnabled(False)
+		# panel2
+		self.panel2 = QtWidgets.QWidget(self)
+		self.panel2.setGeometry(14, 115, 978, 537)
+		self.panel2.setObjectName('panel2')
+		self.panel2.setStyleSheet('QWidget#panel2{border:1px solid gray;}')
+		self.userControlReadWriteOp1 = UserControlReadWriteOp(self.panel2)
+		self.userControlReadWriteOp1.move(11, 2)
+		# groupBox3
+		self.groupBox3 = QtWidgets.QGroupBox(self.panel2)
+		self.groupBox3.setTitle('Bulk Read test')
+		self.groupBox3.setGeometry(11, 243, 518, 154)
+		self.label11 = QtWidgets.QLabel('Address：', self.groupBox3)
+		self.label11.move(9, 30)
+		self.textbox6 = QtWidgets.QLineEdit('', self.groupBox3)
+		self.textbox6.setGeometry(63, 27, 102, 23)
+		self.textbox6.setText(self.Address)
+		self.label12 = QtWidgets.QLabel('Length：', self.groupBox3)
+		self.label12.move(180, 30)
+		self.textbox9 = QtWidgets.QLineEdit('', self.groupBox3)
+		self.textbox9.setGeometry(234, 27, 102, 23)
+		self.textbox9.setText('10')
+		self.button25 = QtWidgets.QPushButton('bulk read', self.groupBox3)
+		self.button25.setGeometry(426, 24, 82, 28)
+		self.button25.clicked.connect(self.button25_click)
+		self.label13 = QtWidgets.QLabel("Result:", self.groupBox3)
+		self.label13.move(9, 62)
+		self.textbox10 = QtWidgets.QTextEdit("", self.groupBox3)
+		self.textbox10.setGeometry(63, 60, 445, 78)
+		# groupBox4
+		self.groupBox4 = QtWidgets.QGroupBox(self.panel2)
+		self.groupBox4.setTitle('Message reading test, hex string needs to be filled in')
+		self.groupBox4.setGeometry(11, 403, 518, 118)
+		self.label16 = QtWidgets.QLabel('Message：', self.groupBox4)
+		self.label16.move(9, 30)
+		self.textbox13 = QtWidgets.QLineEdit('', self.groupBox4)
+		self.textbox13.setGeometry(63, 27, 357, 23)
+		self.button26 = QtWidgets.QPushButton('Read', self.groupBox4)
+		self.button26.setGeometry(426, 24, 82, 28)
+		self.button26.clicked.connect(self.button26_click)
+		self.label14 = QtWidgets.QLabel("Result:", self.groupBox4)
+		self.label14.move(9, 62)
+		self.textbox11 = QtWidgets.QTextEdit('', self.groupBox4)
+		self.textbox11.setGeometry(63, 60, 445, 52)
+		# groupBox5
+		self.groupBox5 = QtWidgets.QGroupBox(self.panel2)
+		self.groupBox5.setTitle('Special function test')
+		self.groupBox5.setGeometry(546, 243, 419, 278)
+		
+		self.textbox3 = QtWidgets.QTextEdit('', self.groupBox5)
+		self.textbox3.setGeometry(16, 93, 388, 145)
+
+		self.panel2.setEnabled(False)
+		self.center()
+	def center(self):
+		screen = QDesktopWidget().screenGeometry()
+		size = self.geometry()
+		self.move((screen.width() - size.width()) / 2,
+				  (screen.height() - size.height()) / 2)
+	def button_connect_click(self):
+		self.modbus = ModbusRtuOverTcp(self.textboxIp.text(), int(self.textboxPort.text()), int(self.textbox16.text()))
+		self.modbus.isAddressStartWithZero = self.checkBox1.isChecked()
+		if self.comboBox1.currentText() == 'ABCD':
+			self.modbus.byteTransform.DataFormat = HslCommunication.DataFormat.ABCD
+		elif self.comboBox1.currentText() == 'BADC':
+			self.modbus.byteTransform.DataFormat = HslCommunication.DataFormat.BADC
+		elif self.comboBox1.currentText() == 'CDAB':
+			self.modbus.byteTransform.DataFormat = HslCommunication.DataFormat.CDAB
+		elif self.comboBox1.currentText() == 'DCBA':
+			self.modbus.byteTransform.DataFormat = HslCommunication.DataFormat.DCBA
+		connect = self.modbus.ConnectServer()
+		if connect.IsSuccess == False:
+			QMessageBox.information(self,'Info','Connect Failed: ' + connect.ToMessageShowString())
+		else:
+			QMessageBox.information(self,'Info','Connect Success!')
+			self.buttonConnect.setEnabled(False)
+			self.buttonDisConnect.setEnabled(True)
+			self.panel2.setEnabled(True)
+			self.userControlReadWriteOp1.SetReadWriteNet(self.modbus, self.Address)
+	def button_disconnect_click(self):
+		disconnect = self.modbus.ConnectClose()
+		if disconnect.IsSuccess == True:
+			self.panel2.setEnabled(False)
+			self.buttonConnect.setEnabled(True)
+			self.buttonDisConnect.setEnabled(False)
+		else:
+			QMessageBox.information(self,'Info','DisConnect Failed: ' + disconnect.ToMessageShowString())
+	def button25_click(self):
+		read = self.modbus.Read(self.textbox6.text(), int(self.textbox9.text()))
+		if read.IsSuccess == True:
+			self.textbox10.setText(datetime.datetime.now().strftime('%H:%M:%S') + " [" + self.textbox6.text()  + "] "+ SoftBasic.ByteToHexString(read.Content))
+		else:
+			QMessageBox.information(self,'Info','Read Failed: ' + read.ToMessageShowString())
+	def button26_click(self):
+		read = self.modbus.ReadFromCoreServer(SoftBasic.HexStringToBytes(self.textbox13.text()))
+		if read.IsSuccess == True:
+			self.textbox11.setText(datetime.datetime.now().strftime('%H:%M:%S') + " "+ SoftBasic.ByteToHexString(read.Content))
+		else:
+			QMessageBox.information(self,'Info','Read Failed: ' + read.ToMessageShowString())
+
+
+class FormAllenBrandly(QtWidgets.QMainWindow):
+	def __init__(self):
+		super().__init__()
+		self.initUI()
+	def initUI(self):
+		self.setGeometry(100, 100, WindowsLoad.WindowWidth, WindowsLoad.WindowHeight)        # 设置窗体的位置和大小情况
+		self.setWindowTitle('AllenBrandly访问Demo')                                          # 设置窗体的标题
+		self.userControlHead = UserControlHead(self)
+		self.userControlHead.setGeometry(QtCore.QRect(0, 0, 1004, 32))
+		self.userControlHead.setProtocol('EIP/CIP')
+		
+		self.plc = None
+		self.Address = 'A'
+
+		self.settings = QtWidgets.QWidget(self)
+		self.settings.setGeometry(QtCore.QRect(14, 44, 978, 62))
+		self.settings.setObjectName('settings')
+		self.settings.setStyleSheet('QWidget#settings{border:1px solid gray;}')
+		self.setStyleSheet('FormAllenBrandly{background:#F0F8FF;font:微软雅黑;}')
+
+		self.label1 = QtWidgets.QLabel('Ip：', self.settings)
+		self.label1.move(8, 10)
+		self.textboxIp = QtWidgets.QLineEdit('', self.settings)
+		self.textboxIp.setGeometry(62, 7, 128, 23)
+		self.textboxIp.setText('127.0.0.1')
+
+		self.label2 = QtWidgets.QLabel('Port：', self.settings)
+		self.label2.move(196, 10)
+		self.textboxPort = QtWidgets.QLineEdit('', self.settings)
+		self.textboxPort.setGeometry(250, 7, 76, 23)
+		self.textboxPort.setText('44818')
+
+		self.label21 = QtWidgets.QLabel('Slot', self.settings)
+		self.label21.move(338, 10)
+		self.textbox16 = QtWidgets.QLineEdit('', self.settings)
+		self.textbox16.setGeometry(392, 7, 39, 23)
+		self.textbox16.setText('0')
+
+		self.buttonConnect = QtWidgets.QPushButton('Connect', self.settings)
+		self.buttonConnect.setGeometry(690, 11, 100, 28)
+		self.buttonConnect.clicked.connect(self.button_connect_click)
+		self.buttonDisConnect = QtWidgets.QPushButton('DisConnect', self.settings)
+		self.buttonDisConnect.setGeometry(821, 11, 100, 28)
+		self.buttonDisConnect.clicked.connect(self.button_disconnect_click)
+		self.buttonDisConnect.setEnabled(False)
+		# panel2
+		self.panel2 = QtWidgets.QWidget(self)
+		self.panel2.setGeometry(14, 115, 978, 537)
+		self.panel2.setObjectName('panel2')
+		self.panel2.setStyleSheet('QWidget#panel2{border:1px solid gray;}')
+		self.userControlReadWriteOp1 = UserControlReadWriteOp(self.panel2)
+		self.userControlReadWriteOp1.move(11, 2)
+		# groupBox3
+		self.groupBox3 = QtWidgets.QGroupBox(self.panel2)
+		self.groupBox3.setTitle('Bulk Read test')
+		self.groupBox3.setGeometry(11, 243, 518, 154)
+		self.label11 = QtWidgets.QLabel('Address：', self.groupBox3)
+		self.label11.move(9, 30)
+		self.textbox6 = QtWidgets.QLineEdit('', self.groupBox3)
+		self.textbox6.setGeometry(63, 27, 102, 23)
+		self.textbox6.setText(self.Address)
+		self.label12 = QtWidgets.QLabel('Length：', self.groupBox3)
+		self.label12.move(180, 30)
+		self.textbox9 = QtWidgets.QLineEdit('', self.groupBox3)
+		self.textbox9.setGeometry(234, 27, 102, 23)
+		self.textbox9.setText('1')
+		self.button25 = QtWidgets.QPushButton('bulk read', self.groupBox3)
+		self.button25.setGeometry(426, 24, 82, 28)
+		self.button25.clicked.connect(self.button25_click)
+		self.label13 = QtWidgets.QLabel("Result:", self.groupBox3)
+		self.label13.move(9, 62)
+		self.textbox10 = QtWidgets.QTextEdit("", self.groupBox3)
+		self.textbox10.setGeometry(63, 60, 445, 78)
+		# groupBox4
+		self.groupBox4 = QtWidgets.QGroupBox(self.panel2)
+		self.groupBox4.setTitle('Message reading test, hex string needs to be filled in')
+		self.groupBox4.setGeometry(11, 403, 518, 118)
+		self.label16 = QtWidgets.QLabel('Message：', self.groupBox4)
+		self.label16.move(9, 30)
+		self.textbox13 = QtWidgets.QLineEdit('', self.groupBox4)
+		self.textbox13.setGeometry(63, 27, 357, 23)
+		self.button26 = QtWidgets.QPushButton('Read', self.groupBox4)
+		self.button26.setGeometry(426, 24, 82, 28)
+		self.button26.clicked.connect(self.button26_click)
+		self.label14 = QtWidgets.QLabel("Result:", self.groupBox4)
+		self.label14.move(9, 62)
+		self.textbox11 = QtWidgets.QTextEdit('', self.groupBox4)
+		self.textbox11.setGeometry(63, 60, 445, 52)
+		# groupBox5
+		self.groupBox5 = QtWidgets.QGroupBox(self.panel2)
+		self.groupBox5.setTitle('Special function test')
+		self.groupBox5.setGeometry(546, 243, 419, 278)
+		
+		self.textbox3 = QtWidgets.QTextEdit('', self.groupBox5)
+		self.textbox3.setGeometry(16, 93, 388, 145)
+
+		self.panel2.setEnabled(False)
+		self.center()
+	def center(self):
+		screen = QDesktopWidget().screenGeometry()
+		size = self.geometry()
+		self.move((screen.width() - size.width()) / 2,
+				  (screen.height() - size.height()) / 2)
+	def button_connect_click(self):
+		self.plc = AllenBradleyNet(self.textboxIp.text(), int(self.textboxPort.text()))
+		self.plc.Slot = int(self.textbox16.text())
+		connect = self.plc.ConnectServer()
+		if connect.IsSuccess == False:
+			QMessageBox.information(self,'Info','Connect Failed: ' + connect.ToMessageShowString())
+		else:
+			QMessageBox.information(self,'Info','Connect Success!')
+			self.buttonConnect.setEnabled(False)
+			self.buttonDisConnect.setEnabled(True)
+			self.panel2.setEnabled(True)
+			self.userControlReadWriteOp1.SetReadWriteNet(self.plc, self.Address)
+	def button_disconnect_click(self):
+		disconnect = self.plc.ConnectClose()
+		if disconnect.IsSuccess == True:
+			self.panel2.setEnabled(False)
+			self.buttonConnect.setEnabled(True)
+			self.buttonDisConnect.setEnabled(False)
+		else:
+			QMessageBox.information(self,'Info','DisConnect Failed: ' + disconnect.ToMessageShowString())
+	def button25_click(self):
+		read = self.plc.Read(self.textbox6.text(), int(self.textbox9.text()))
+		if read.IsSuccess == True:
+			self.textbox10.setText(datetime.datetime.now().strftime('%H:%M:%S') + " [" + self.textbox6.text()  + "] "+ SoftBasic.ByteToHexString(read.Content))
+		else:
+			QMessageBox.information(self,'Info','Read Failed: ' + read.ToMessageShowString())
+	def button26_click(self):
+		read = self.plc.ReadFromCoreServer(SoftBasic.HexStringToBytes(self.textbox13.text()))
+		if read.IsSuccess == True:
+			self.textbox11.setText(datetime.datetime.now().strftime('%H:%M:%S') + " "+ SoftBasic.ByteToHexString(read.Content))
+		else:
+			QMessageBox.information(self,'Info','Read Failed: ' + read.ToMessageShowString())
+
+
 
 app = QtWidgets.QApplication(sys.argv)
 windowsLoad = WindowsLoad()
